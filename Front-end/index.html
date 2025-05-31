@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaviX - Nowoczesna Nawigacja</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="logo-title">
+        <img src="https://img.icons8.com/color/48/000000/compass--v2.png" alt="NaviX logo" class="app-logo" />
+        <h1>NaviX</h1>
+      </div>
+      <form class="search-box" onsubmit="return false;">
+        <input type="text" id="search-input" placeholder="Wpisz cel..." autocomplete="off">
+        <div id="autocomplete-list" class="autocomplete-list"></div>
+        <div id="history-list" class="history-list"></div>
+        <button type="button" id="voice-btn" title="Wyszukiwanie głosowe">🎤</button>
+        <button type="button" id="search-btn">Szukaj</button>
+      </form>
+      <div class="toolbar">
+        <div class="mode-switch">
+          <label>Tryb:</label>
+          <select id="travel-mode">
+            <option value="car">Samochód</option>
+            <option value="walk">Pieszo</option>
+            <option value="bike">Rower</option>
+            <option value="bus">Autobus</option>
+            <option value="train">Pociąg</option>
+            <option value="plane">Samolot</option>
+          </select>
+        </div>
+        <button id="theme-toggle" title="Zmień motyw">🌙</button>
+        <button id="fullscreen-btn" title="Pełny ekran">⛶</button>
+        <button id="share-btn" title="Udostępnij trasę">🔗</button>
+        <button id="fav-btn" title="Dodaj do ulubionych">★</button>
+        <select id="language-switch" title="Język">
+          <option value="pl">PL</option>
+          <option value="en">EN</option>
+        </select>
+        <div class="auto-night-switch">
+          <label for="auto-night-toggle" title="Automatyczny tryb nocny">Auto noc 🌙</label>
+          <input type="checkbox" id="auto-night-toggle" title="Automatyczny tryb nocny" />
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div id="map"></div>
+      <div class="legend" id="legend">
+        <div class="legend-header">
+          <h4>Legenda</h4>
+          <button id="legend-toggle" title="Schowaj/Pokaż legendę">❌</button>
+        </div>
+        <div class="legend-content">
+          <div><span class="legend-icon" style="color:#2563eb;">●</span> Trasa główna</div>
+          <div><span class="legend-icon" style="color:orange;">●</span> Trasa alternatywna</div>
+          <div><span class="legend-icon">⚠️</span> Utrudnienie</div>
+          <div><span class="legend-icon">📸</span> Fotoradar</div>
+          <div><span class="legend-icon">🚗</span> Samochód</div>
+          <div><span class="legend-icon">🚶‍♂️</span> Pieszo</div>
+          <div><span class="legend-icon">🚲</span> Rower</div>
+          <div><span class="legend-icon">🚌</span> Autobus</div>
+          <div><span class="legend-icon">🛒</span> Sklep <input type="checkbox" id="filter-shop" checked style="vertical-align:middle;" title="Pokaż/ukryj sklepy"></div>
+          <div><span class="legend-icon">⛽</span> Stacja benzynowa <input type="checkbox" id="filter-fuel" checked style="vertical-align:middle;" title="Pokaż/ukryj stacje"></div>
+          <div><span class="legend-icon">🏥</span> Szpital <input type="checkbox" id="filter-hospital" checked style="vertical-align:middle;" title="Pokaż/ukryj szpitale"></div>
+          <div><span class="legend-icon">🛍️</span> Galeria handlowa <input type="checkbox" id="filter-mall" checked style="vertical-align:middle;" title="Pokaż/ukryj galerie"></div>
+          <div><span class="legend-icon">💇‍♂️</span> Salon fryzjerski <input type="checkbox" id="filter-hairdresser" checked style="vertical-align:middle;" title="Pokaż/ukryj salony"></div>
+          <div><span class="legend-icon">🚆</span> Pociąg</div>
+          <div><span class="legend-icon">✈️</span> Samolot</div>
+        </div>
+        <button id="legend-show" style="display:none;margin-top:10px;">Pokaż legendę</button>
+      </div>
+
+      <div class="route-info hidden" id="route-info">
+        <h3>Informacje o trasie</h3>
+        <div id="route-shortcuts" style="margin-bottom:10px;"></div>
+        <p>Dystans: <span id="distance">-</span> km</p>
+        <p>Czas podróży: <span id="duration">-</span> min</p>
+        <div id="route-transport-info" style="margin:10px 0;"></div>
+        <button id="start-navigation">Rozpocznij nawigację</button>
+        <button id="help-btn" style="margin-top:10px;background:#2563eb;">Pomoc</button>
+      </div>
+    </main>
+
+    <div class="user-location hidden" id="user-location">
+      <span>Twoja lokalizacja: </span>
+      <span id="location-coords"></span>
+    </div>
+
+    <div id="help-modal" class="hidden" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(24,28,42,0.7);z-index:4000;display:flex;align-items:center;justify-content:center;">
+      <div style="background:#fff;color:#232946;padding:32px 24px;border-radius:16px;max-width:400px;box-shadow:0 4px 32px rgba(44,62,80,0.18);position:relative;">
+        <button id="close-help" style="position:absolute;top:12px;right:12px;font-size:1.3em;background:none;border:none;cursor:pointer;color:#2563eb;">✖</button>
+        <h2 style="margin-bottom:12px;">Pomoc</h2>
+        <ul style="margin-bottom:10px;">
+          <li>Wpisz cel podróży lub kliknij na mapie.</li>
+          <li>Wybierz tryb transportu (samochód, pieszo, rower, autobus, pociąg).</li>
+          <li>Możesz użyć wyszukiwania głosowego (🎤).</li>
+          <li>Dodaj trasę do ulubionych (★) lub udostępnij (🔗).</li>
+          <li>Przełącz tryb jasny/ciemny lub auto-noc.</li>
+          <li>Legenda wyjaśnia ikony i kolory tras.</li>
+          <li>Historia wyszukiwań dostępna po kliknięciu w pole.</li>
+          <li>Fotoradary (📸) pojawiają się na trasie w miejscach o większym natężeniu ruchu lub na głównych drogach.</li>
+          <li>Historia tras: kliknij przycisk poniżej, aby zobaczyć i wybrać poprzednie trasy.</li>
+        </ul>
+        <b>Oznaczenia środków transportu:</b>
+        <div style="margin:8px 0;">🚗 Samochód, 🚶‍♂️ Pieszo, 🚲 Rower, 🚌 Autobus, 🚆 Pociąg</div>
+        <div style="font-size:0.95em;color:#888;">Niektóre tryby mogą być niedostępne dla wybranej trasy.</div>
+        <button id="show-history-btn" style="margin-top:16px;background:#2563eb;color:#fff;padding:8px 18px;border-radius:8px;border:none;cursor:pointer;font-size:1em;">Historia tras</button>
+      </div>
+    </div>
+
+    <div id="history-modal" class="hidden" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(24,28,42,0.7);z-index:4100;display:flex;align-items:center;justify-content:center;">
+      <div style="background:#fff;color:#232946;padding:28px 20px;border-radius:14px;max-width:420px;box-shadow:0 4px 32px rgba(44,62,80,0.18);position:relative;min-width:260px;">
+        <button id="close-history" style="position:absolute;top:12px;right:12px;font-size:1.2em;background:none;border:none;cursor:pointer;color:#2563eb;">✖</button>
+        <h2 style="margin-bottom:12px;">Historia tras</h2>
+        <div id="history-routes-list" style="max-height:260px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
