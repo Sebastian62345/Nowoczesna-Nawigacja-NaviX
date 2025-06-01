@@ -1,4 +1,4 @@
-# NaviX – Nowoczesna aplikacja nawigacyjna (Frontend Web App)
+# NaviX – Nowoczesna aplikacja nawigacyjna 
 
 NaviX to nowoczesna, responsywna aplikacja webowa do nawigacji po Polsce i Europie, stworzona w HTML, CSS i JavaScript z wykorzystaniem Leaflet oraz OSRM.
 
